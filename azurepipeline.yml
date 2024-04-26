@@ -1,0 +1,49 @@
+name: "Pipeline for installing S1 agent on Windows VM"
+
+trigger: none
+
+parameters:
+  - name: resource_group_container
+    displayName: 'Resource Group of container'
+    default: "Dev"
+    type: string
+
+  - name: storageAccountName
+    displayName: 'Storage Account Name'
+    default: "balrajxyz"
+    type: string
+
+  - name: containerName
+    displayName: 'Container Name'
+    default: "sentinelone"
+    type: string
+
+
+
+stages:
+- stage: PrerequisiteBeforeInstallingExtension
+  jobs:
+  - job: TaskOnAzure
+    steps:
+
+    - task: AzurePowerShell@5
+      displayName: 'Turning on all the VMs'
+      inputs:
+        azureSubscription: 'service-connection'
+        ScriptType: 'FilePath'
+        ScriptPath: 'powershell/StartVms.ps1'
+        azurePowerShellVersion: 'LatestVersion'
+    - task: AzurePowerShell@5
+      displayName: 'Creating the container ${{ parameters.containerName }}'
+      inputs:
+        azureSubscription: 'service-connection'
+        ScriptType: 'FilePath'
+        ScriptPath: 'powershell/CreateContainer.ps1'
+        ScriptArguments: '-storageAccountName ${{ parameters.storageAccountName }} -resourceGroupName ${{ parameters.resource_group_container }} -containerName ${{ parameters.containerName }}'
+        azurePowerShellVersion: 'LatestVersion'
+    - task: AzurePowerShell@5
+      inputs:
+        azureSubscription: 'service-connection'
+        ScriptType: 'FilePath'
+        ScriptPath: 'powershell/ListOfVmsAndRg.ps1'
+        azurePowerShellVersion: 'LatestVersion'
